@@ -6,7 +6,6 @@ using Npgsql;
 using TestJob.Api.Services;
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -14,19 +13,15 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.WriteIndented = true;
     });
 
-// Register Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Register FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
-// Register processing service
 builder.Services.AddScoped<IProcessingService, ProcessingService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -38,7 +33,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Initialize database on startup
 await InitializeDatabaseAsync(app.Services);
 
 app.Run();
