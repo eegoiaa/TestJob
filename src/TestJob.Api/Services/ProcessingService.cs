@@ -136,8 +136,21 @@ public class ProcessingService : IProcessingService
 
     private static string DecryptAesEcb(byte[] encryptedBytes, byte[] keyBytes)
     {
-        ArgumentNullException.ThrowIfNull(encryptedBytes);
-        ArgumentNullException.ThrowIfNull(keyBytes);
+        if (encryptedBytes == null || encryptedBytes.Length == 0)
+        {
+            throw new ArgumentException("Encrypted bytes cannot be null or empty", nameof(encryptedBytes));
+        }
+        
+        if (keyBytes == null || keyBytes.Length == 0)
+        {
+            throw new ArgumentException("Key bytes cannot be null or empty", nameof(keyBytes));
+        }
+
+        // AES-256 requires 32-byte key
+        if (keyBytes.Length != 32)
+        {
+            throw new ArgumentException($"Invalid key length: {keyBytes.Length} bytes. AES-256 requires 32 bytes.", nameof(keyBytes));
+        }
 
         using var aes = Aes.Create();
         aes.Mode = CipherMode.ECB;
