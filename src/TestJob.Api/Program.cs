@@ -1,9 +1,9 @@
 using System.Text.Json;
 using Dapper;
 using FluentValidation;
+using FluentValidation.AspNetCore;
 using Npgsql;
 using TestJob.Api.Services;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -14,6 +14,7 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.WriteIndented = true;
     });
 
+// Register Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -26,21 +27,18 @@ builder.Services.AddScoped<IProcessingService, ProcessingService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "TestJob API v1");
-        c.RoutePrefix = "api/swagger";
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "TestJob API v1");
+    c.RoutePrefix = "api/swagger";
+});
 
 app.UseAuthorization();
 
 app.MapControllers();
 
-// Auto-create database table on startup
+// Initialize database on startup
 await InitializeDatabaseAsync(app.Services);
 
 app.Run();
