@@ -9,8 +9,12 @@ using TestJob.Api.Models;
 
 namespace TestJob.Api.Services;
 
-public partial class ProcessingService : IProcessingService
+public class ProcessingService : IProcessingService
 {
+    private static readonly Regex s_emailRegex = new(
+        @"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
     private readonly string _connectionString;
 
     public ProcessingService(Microsoft.Extensions.Configuration.IConfiguration configuration)
@@ -85,7 +89,7 @@ public partial class ProcessingService : IProcessingService
             {
                 return ProcessResponse.Error("BASE64_CRYPTO_ERROR", $"Failed to decode crypto parameters: {ex.Message}");
             }
-            catch (CryptographicException ex)
+            catch (Exception ex)
             {
                 return ProcessResponse.Error("DECRYPTION_ERROR", $"AES decryption failed: {ex.Message}");
             }
@@ -121,7 +125,7 @@ public partial class ProcessingService : IProcessingService
 
     private static List<string> ExtractEmails(string html)
     {
-        var matches = EmailRegex().Matches(html);
+        var matches = s_emailRegex.Matches(html);
         var emails = new List<string>(matches.Count);
         foreach (Match match in matches)
         {
@@ -132,24 +136,17 @@ public partial class ProcessingService : IProcessingService
 
     private static string DecryptAesEcb(byte[] encryptedBytes, byte[] keyBytes)
     {
+        ArgumentNullException.ThrowIfNull(encryptedBytes);
+        ArgumentNullException.ThrowIfNull(keyBytes);
+
         using var aes = Aes.Create();
         aes.Mode = CipherMode.ECB;
         aes.Padding = PaddingMode.None;
         aes.Key = keyBytes;
 
         using var decryptor = aes.CreateDecryptor();
-        var decryptedBytes = decryptor.TransformFinalBlock(encryptedBytes, 0, encryptedBytes.Length);
+        byte[] decryptedBytes = decryptor.TransformFinalBlock(encryptedBytes, 0, encryptedBytes.Length);
 
-        // Trim null bytes (\0) and convert to UTF-8 string
-        var trimmedLength = decryptedBytes.Length;
-        while (trimmedLength > 0 && decryptedBytes[trimmedLength - 1] == 0)
-        {
-            trimmedLength--;
-        }
-
-        return Encoding.UTF8.GetString(decryptedBytes, 0, trimmedLength);
+        return Encoding.UTF8.GetString(decryptedBytes).TrimEnd('\0');
     }
-
-    [GeneratedRegex(@"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}", RegexOptions.Compiled)]
-    private static partial Regex EmailRegex();
 }

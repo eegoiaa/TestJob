@@ -1,4 +1,11 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="AGENTS.md" />
+    <File Path="json_payload_1.txt" />
+    <File Path="json_payload_2.txt" />
+    <File Path="README.md" />
+    <File Path="web-page.txt" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/TestJob.Api/TestJob.Api.csproj" Id="35c4918e-d4b8-432d-b8cf-74f8fca70ebc" />
   </Folder>
