@@ -7,8 +7,6 @@
       "Port": 5432,
       "MaintenanceDB": "testjob",
       "Username": "postgres",
-      "Password": "postgres",
-      "SavePassword": true,
       "SSLMode": "prefer"
     }
   }
